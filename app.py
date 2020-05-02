@@ -75,7 +75,7 @@ if st.checkbox('Show Example', value=False):
         if st.checkbox('Show Fitted Parameter Values'):
             for name, value in fittedParams.valuesdict().items():
                 st.write(name, value)
-                
+
         RMSPE_i = calculate_RMSPE(predictions, truth)
         RMSPE_IMA_i = calculate_RMSPE(predictions_IMA, truth)
         st.write('RMSPE for country {} is {} for our model against a benchmark of {}'.format(i, RMSPE_i, RMSPE_IMA_i))
@@ -88,20 +88,20 @@ if st.checkbox('Show Example', value=False):
         # table with RMSPE comparison
         st.write('## Model Comparison')
         st.line_chart(np.transpose([predictions, predictions_IMA, truth]))
-"""
-    runs = st.selectbox('Select #runs (runs): ', [1, 10, 50, 100, 150, 200], index=0)
-    st.write('## Simulation runs')
-    scoresBeaten = np.zeros(runs)
-    for run in range(runs):
-        Y = create_DGP(N, T, alpha, var_eps)
-        scoresBeaten[run] = run_simulation(Y,a, tao)
-    beatenScore = np.mean(scoresBeaten)
-    beatenStd = np.std(scoresBeaten)
-    st.write('Over {} runs, we beat the benchmark on average for {} out of {} countries'.format(runs, beatenScore, N))
-    st.write('H0: beaten == N/2')
-    st.write(scoresBeaten)
-    ttest = (beatenScore-N/2)/(beatenStd/sqrt(runs))
-    st.write('t-test ouput: {}'.format(ttest))
-"""
+
+#    runs = st.selectbox('Select #runs (runs): ', [1, 10, 50, 100, 150, 200], index=0)
+#    st.write('## Simulation runs')
+#    scoresBeaten = np.zeros(runs)
+#    for run in range(runs):
+#        Y = create_DGP(N, T, alpha, var_eps)
+#        scoresBeaten[run] = run_simulation(Y,a, tao)
+#    beatenScore = np.mean(scoresBeaten)
+#    beatenStd = np.std(scoresBeaten)
+#    st.write('Over {} runs, we beat the benchmark on average for {} out of {} countries'.format(runs, beatenScore, N))
+#    st.write('H0: beaten == N/2')
+#    st.write(scoresBeaten)
+#    ttest = (beatenScore-N/2)/(beatenStd/sqrt(runs))
+#    st.write('t-test ouput: {}'.format(ttest))
+
     #st.write('## Model Comparison')
     #st.write('For {} countries and a time horizon of {}, we beat the benchmark {} out of {} times.'.format(N, T, np.sum(scoresBeaten), runs*N))
