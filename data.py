@@ -3,6 +3,7 @@ import numpy as np
 np.random.seed(1)
 
 def growth_rate(x, steps=1):
+  """documentation """
     """ calculates first differences"""
     return x[steps:]-x[:-steps]
 
