@@ -3,9 +3,8 @@ import numpy as np
 np.random.seed(1)
 
 def growth_rate(x, steps=1):
-  """documentation """
-    """ calculates first differences"""
-    return x[steps:]-x[:-steps]
+  """ calculates first differences"""
+  return x[steps:]-x[:-steps]
 
 def create_DGP(N, T, alpha, var_eps):
   """ Function that takes all parameters and returns a simulated dataset [NxT]"""
