@@ -6,6 +6,8 @@ T = st.sidebar.slider('Select Time Horizon (T): ', 10, 100,50)
 N = st.sidebar.slider('Select #Countries (N): ', 10, 100,50)
 var_eps = st.sidebar.selectbox('Select variance of epsilon',[0.5, 1])
 alpha = st.sidebar.selectbox('Select alpha',[2, 5, 10])
+a = st.sidebar.selectbox('Select a',[1, 2, 5,  10])
+tao = st.sidebar.selectbox('Select tao',[0.4, 0.7], index=1)
 
 st.write('Generate Data by specifying parameters in the sidebar.')
 
@@ -76,9 +78,9 @@ if st.checkbox('Show Example', value=False):
             for name, value in fittedParams.valuesdict().items():
                 st.write(name, value)
 
-        RMSPE_i = calculate_RMSPE(predictions, truth)
-        RMSPE_IMA_i = calculate_RMSPE(predictions_IMA, truth)
-        st.write('RMSPE for country {} is {} for our model against a benchmark of {}'.format(i, RMSPE_i, RMSPE_IMA_i))
+        RMSPE_i = np.array([calculate_RMSPE(predictions, truth)])
+        RMSPE_IMA_i = np.array([calculate_RMSPE(predictions_IMA, truth)])
+        #st.write('RMSPE for country {} is {} for our model against a benchmark of {}'.format(i, RMSPE_i, RMSPE_IMA_i))
 
         st.write('## Residuals')
         st.line_chart(predictions-truth)
@@ -87,7 +89,58 @@ if st.checkbox('Show Example', value=False):
         st.line_chart(predictions_IMA-truth)
         # table with RMSPE comparison
         st.write('## Model Comparison')
-        st.line_chart(np.transpose([predictions, predictions_IMA, truth]))
+        # create pandas DF to add legend from column names
+        linedata = pd.DataFrame([predictions, predictions_IMA, truth]).T.rename(columns={0:'MODEL', 1:'IMA', 2:'TRUTH'})
+        st.line_chart(linedata)
+        RMSPE = pd.DataFrame({'RMSPE us':RMSPE_i, 'RMSPE IMA':RMSPE_IMA_i, '#Beaten': (RMSPE_i<RMSPE_IMA_i)})
+        #RMSPE = pd.DataFrame([RMSPE_i; RMSPE_IMA_i], columns=['RMSPE us', 'RMSPE IMA'])
+        
+        st.table(RMSPE)
+if st.checkbox('Run Simulations', value=False):
+    progress = 0
+    runs = st.number_input('Select #runs: ', 1, 100, 1)
+    beaten_R = np.array([])
+    RMSPE_R = np.array([])
+    RMSPE_IMA_R = np.array([])
+
+    # Add a placeholder
+    latest_iteration = st.empty()
+    bar = st.progress(0)
+    starttime = time.time()
+
+    for r in range(runs):
+        RMSPE_N = np.array([])
+        RMSPE_IMA_N = np.array([])
+        Y = create_DGP(N, T, alpha, var_eps)
+        #beatenQuick = run_simulation(Y,a, tao)
+        for i in range(N):
+            beaten, predictions, predictions_IMA, truth, fittedParams, params, rank, JH, pos, neg = run_example_param(Y, i,a, tao)
+            RMSPE_N = np.append(RMSPE_N, calculate_RMSPE(predictions, truth) )
+            RMSPE_IMA_N = np.append(RMSPE_IMA_N, calculate_RMSPE(predictions_IMA, truth) )
+            progress += 1
+            
+            # Update the progress bar with each iteration.
+            latest_iteration.text(f'Country {i+1}')
+            bar.progress((i + 1)/N)
+            time.sleep(0.1)
+            
+        beaten_N = RMSPE_N < RMSPE_IMA_N
+        #st.write('function comparison: {}'.format(beatenQuick - np.sum(beaten_N)))
+        beaten_R = np.append(beaten_R, np.sum(beaten_N))
+        RMSPE_R = np.append(RMSPE_R, np.mean(RMSPE_N))
+        RMSPE_IMA_R = np.append(RMSPE_IMA_R, np.mean(RMSPE_IMA_N))
+        st.write('Done with {} out of {} simulations'.format(r+1, runs))
+
+    #st.write('Finished! Simulation took {} seconds'.format(starttime-time.time()))
+    RMSPE = pd.DataFrame({'RMSPE us':RMSPE_N, 'RMSPE IMA':RMSPE_IMA_N, 'Beaten': (RMSPE_N<RMSPE_IMA_N)}) 
+    st.write('Results for last run')
+    st.table(RMSPE)
+
+    st.write('Results for {} simulation runs'.format(runs))
+    RUNS = pd.DataFrame({'Avg RMSPE':RMSPE_R, 'Avg RMSPE IMA': RMSPE_IMA_R, '#Beaten':beaten_R})
+    st.table(RUNS)
+
+
 
 #    runs = st.selectbox('Select #runs (runs): ', [1, 10, 50, 100, 150, 200], index=0)
 #    st.write('## Simulation runs')
